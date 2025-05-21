@@ -1,0 +1,9 @@
+[project]
+name = "matrix-groupme"
+version = "0.1.0"
+description = "A bridge that connects GroupMe and Matrix."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mautrix>=0.20.7",
+]
