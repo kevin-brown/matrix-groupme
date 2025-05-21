@@ -5,6 +5,7 @@ description = "A bridge that connects GroupMe and Matrix."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiosqlite>=0.21.0",
     "commonmark>=0.9.1",
     "mautrix>=0.20.7",
     "ruamel-yaml>=0.18.10",

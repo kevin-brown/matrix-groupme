@@ -2,11 +2,11 @@ from mautrix.bridge import Bridge
 from mautrix.types import RoomID, UserID
 
 from .config import Config
+from .db import init as init_db, upgrade_table
 from .portal import Portal
 from .puppet import Puppet
 from .user import User
 from .version import version, linkified_version
-
 
 class GroupMeBridge(Bridge):
     module = "matrix_groupme"
@@ -20,6 +20,9 @@ class GroupMeBridge(Bridge):
     markdown_version = linkified_version
 
     config_class = Config
+
+    init_db = init_db
+    upgrade_table = upgrade_table
 
     async def get_user(self, user_id: UserID, create: bool = True) -> User | None:
         user = await User.get_by_mxid(user_id, create=create)
