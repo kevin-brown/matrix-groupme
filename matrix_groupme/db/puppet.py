@@ -35,11 +35,11 @@ class Puppet:
     next_batch: SyncToken
 
     columns: ClassVar[str] = (
-        "id",
-        "display_name", "display_name_set",
-        "groupme_avatar_url", "matrix_avatar_url", "matrix_avatar_set",
-        "custom_mxid","access_token", "next_batch",
-    ),
+        "id, "
+        "display_name, display_name_set, "
+        "groupme_avatar_url, matrix_avatar_url, matrix_avatar_set, "
+        "custom_matrix_id, access_token, next_batch"
+    )
 
     @classmethod
     def _from_row(cls, row: Row | None) -> Puppet | None:

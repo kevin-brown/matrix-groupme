@@ -21,6 +21,6 @@ async def upgrade_latest(conn: Connection) -> None:
             custom_matrix_id    TEXT NOT NULL DEFAULT '',
             access_token        TEXT,
 
-            next_batch          TEXT,
+            next_batch          TEXT
         )"""
     )
