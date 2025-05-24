@@ -9,7 +9,7 @@ homeserver:
     verify_ssl: true
     # What software is the homeserver running?
     # Standard Matrix homeservers like Synapse, Dendrite and Conduit should just use "standard" here.
-    software: standard
+    software: hungry
     # Number of retries for all HTTP requests if the homeserver isn't reachable.
     http_retry_count: 4
     # The URL to push real-time bridge status to.
@@ -112,13 +112,13 @@ manhole:
 bridge:
     # Localpart template of MXIDs for GroupMe users.
     # {{.}} is replaced with the phone number of the GroupMe user.
-    username_template: groupme_{{.}}
+    username_template: groupme_{userid}
     alias_template: "groupme_{groupname}"
     # Displayname template for GroupMe users.
     # {{call .UserID.String}} - the number GroupMe assigns to the user
     # {{.Nickname}} - the nickname in that room
     # {{.ImageURL}} - User's avatar URL is available but irrelevant here
-    displayname_template: "{{if .Nickname}}{{.Nickname}}{{else}}{{call .UserID.String}}{{end}} (GM)"
+    displayname_template: "{displayname} (GM)"
 
     # Set the preferred order of user identifiers which to use in the Matrix puppet display name.
     # In the (hopefully unlikely) scenario that none of the given keys are found, the numeric user
@@ -199,45 +199,45 @@ bridge:
     # See https://docs.mau.fi/bridges/general/end-to-bridge-encryption.html for more info.
     encryption:
         # Allow encryption, work in group chat rooms with e2ee enabled
-        allow: false
+        allow: true
         # Default to encryption, force-enable encryption in all portals the bridge creates
         # This will cause the bridge bot to be in private chats for the encryption to work properly.
-        default: false
+        default: true
         # Whether to use MSC3202/MSC4203 instead of /sync long polling for receiving encryption-related data.
         # This option is not yet compatible with standard Matrix servers like Synapse and should not be used.
         # Changing this option requires updating the appservice registration file.
-        appservice: false
+        appservice: true
         # Whether to use MSC4190 instead of appservice login to create the bridge bot device.
         # Requires the homeserver to support MSC4190 and the device masquerading parts of MSC3202.
         # Only relevant when using end-to-bridge encryption, required when using encryption with next-gen auth (MSC3861).
         # Changing this option requires updating the appservice registration file.
         msc4190: false
         # Require encryption, drop any unencrypted messages.
-        require: false
+        require: true
         # Enable key sharing? If enabled, key requests for rooms where users are in will be fulfilled.
         # You must use a client that supports requesting keys from other users to use this feature.
-        allow_key_sharing: false
+        allow_key_sharing: true
         # Options for deleting megolm sessions from the bridge.
         delete_keys:
             # Beeper-specific: delete outbound sessions when hungryserv confirms
             # that the user has uploaded the key to key backup.
-            delete_outbound_on_ack: false
+            delete_outbound_on_ack: true
             # Don't store outbound sessions in the inbound table.
             dont_store_outbound: false
             # Ratchet megolm sessions forward after decrypting messages.
-            ratchet_on_decrypt: false
+            ratchet_on_decrypt: true
             # Delete fully used keys (index >= max_messages) after decrypting messages.
-            delete_fully_used_on_decrypt: false
+            delete_fully_used_on_decrypt: true
             # Delete previous megolm sessions from same device when receiving a new one.
-            delete_prev_on_new_session: false
+            delete_prev_on_new_session: true
             # Delete megolm sessions received from a device when the device is deleted.
-            delete_on_device_delete: false
+            delete_on_device_delete: true
             # Periodically delete megolm sessions when 2x max_age has passed since receiving the session.
-            periodically_delete_expired: false
+            periodically_delete_expired: true
             # Delete inbound megolm sessions that don't have the received_at field used for
             # automatic ratcheting and expired session deletion. This is meant as a migration
             # to delete old keys prior to the bridge update.
-            delete_outdated_inbound: false
+            delete_outdated_inbound: true
         # What level of device verification should be required from users?
         #
         # Valid levels:
@@ -607,9 +607,7 @@ logging:
             formatter: colored
     loggers:
         mau:
-            level: DEBUG
-        telethon:
-            level: INFO
+            level: TRACE
         aiohttp:
             level: INFO
     root:

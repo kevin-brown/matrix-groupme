@@ -1,5 +1,11 @@
 from mautrix.bridge import BaseUser
+
+from typing import AsyncIterable, Awaitable, TYPE_CHECKING
+
 from .db import User as DBUser
+
+if TYPE_CHECKING:
+    from .__main__ import GroupMeBridge
 
 class User(DBUser, BaseUser):
     """
@@ -21,3 +27,7 @@ class User(DBUser, BaseUser):
         self.groupme_access_token = groupme_access_token
         self.groupme_email = groupme_email
         self.groupme_phone_number = groupme_phone_number
+
+    @classmethod
+    def init_cls(cls, bridge: "GroupMeBridge") -> AsyncIterable[Awaitable[None]]:
+        return []

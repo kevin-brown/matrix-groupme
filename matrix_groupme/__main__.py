@@ -26,6 +26,15 @@ class GroupMeBridge(Bridge):
     upgrade_table = upgrade_table
     matrix_class = MatrixHandler
 
+    def prepare_bridge(self) -> None:
+        self.matrix = MatrixHandler(bridge=self)
+        Portal.init_cls(self)
+        self.add_startup_actions(Puppet.init_cls(self))
+        self.add_startup_actions(User.init_cls(self))
+        self.add_startup_actions(Portal.restart_scheduled_disappearing())
+
+        super().prepare_bridge()
+
     async def get_user(self, user_id: UserID, create: bool = True) -> User | None:
         user = await User.get_by_mxid(user_id, create=create)
         if user:
