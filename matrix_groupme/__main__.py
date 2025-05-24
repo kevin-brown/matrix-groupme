@@ -39,10 +39,7 @@ class GroupMeBridge(Bridge):
         super().prepare_bridge()
 
     async def get_user(self, user_id: UserID, create: bool = True) -> User | None:
-        user = await User.get_by_matrix_id(user_id, create=create)
-        if user:
-            await user.ensure_started()
-        return user
+        return await User.get_by_matrix_id(user_id, create=create)
 
     async def get_portal(self, room_id: RoomID) -> Portal | None:
         return await Portal.get_by_matrix_id(room_id)

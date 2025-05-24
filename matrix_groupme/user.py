@@ -21,11 +21,21 @@ class User(DBUser, BaseUser):
     by_matrix_id: dict[UserID, User] = {}
     by_groupme_id: dict[GroupMeID, User] = {}
 
-    client: None
+    email: str = None
 
-    def __init__(self, matrix_id: UserID, groupme_id: GroupMeID = None):
+    relay_whitelisted: bool
+    is_whitelisted: bool
+    is_admin: bool
+    permission_level: str
+
+    def __init__(self, matrix_id: UserID, groupme_id: GroupMeID = None, email: str = None) -> None:
         self.matrix_id = matrix_id
         self.groupme_id = groupme_id
+
+        self.email = email
+
+        perms = self.config.get_permissions(matrix_id)
+        self.relay_whitelisted, self.is_whitelisted, self.is_admin, self.permission_level = perms
 
     def _add_to_cache(self) -> None:
         self.by_matrix_id[self.matrix_id] = self
@@ -34,7 +44,14 @@ class User(DBUser, BaseUser):
 
     @classmethod
     def init_cls(cls, bridge: "GroupMeBridge") -> AsyncIterable[Awaitable[None]]:
+        cls.bridge = bridge
+        cls.config = bridge.config
+
         return []
+
+    @property
+    def mxid(self) -> UserID:
+        return self.matrix_id
 
     @classmethod
     @async_getter_lock
@@ -78,6 +95,4 @@ class User(DBUser, BaseUser):
         )
 
     async def is_logged_in(self) -> bool:
-        return (
-            self.client and self.client.is_connected() and await self.client.is_user_authorized()
-        )
+        return bool(self.email)
