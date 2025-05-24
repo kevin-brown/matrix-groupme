@@ -22,9 +22,12 @@ class GroupMeBridge(Bridge):
 
     config_class = Config
 
-    init_db = init_db
     upgrade_table = upgrade_table
     matrix_class = MatrixHandler
+
+    def prepare_db(self) -> None:
+        super().prepare_db()
+        init_db(self.db)
 
     def prepare_bridge(self) -> None:
         self.matrix = MatrixHandler(bridge=self)
@@ -36,22 +39,22 @@ class GroupMeBridge(Bridge):
         super().prepare_bridge()
 
     async def get_user(self, user_id: UserID, create: bool = True) -> User | None:
-        user = await User.get_by_mxid(user_id, create=create)
+        user = await User.get_by_matrix_id(user_id, create=create)
         if user:
             await user.ensure_started()
         return user
 
     async def get_portal(self, room_id: RoomID) -> Portal | None:
-        return await Portal.get_by_mxid(room_id)
+        return await Portal.get_by_matrix_id(room_id)
 
     async def get_puppet(self, user_id: UserID, create: bool = False) -> Puppet | None:
-        return await Puppet.get_by_mxid(user_id, create=create)
+        return await Puppet.get_by_matrix_id(user_id, create=create)
 
     async def get_double_puppet(self, user_id: UserID) -> Puppet | None:
-        return await Puppet.get_by_custom_mxid(user_id)
+        return await Puppet.get_by_custom_matrix_id(user_id)
 
     def is_bridge_ghost(self, user_id: UserID) -> bool:
-        return bool(Puppet.get_id_from_mxid(user_id))
+        return bool(Puppet.get_id_from_matrix_id(user_id))
 
     async def count_logged_in_users(self) -> int:
         return len([user for user in User.by_groupme_id.values() if user.groupme_id])

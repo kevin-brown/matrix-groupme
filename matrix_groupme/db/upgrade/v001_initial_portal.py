@@ -14,7 +14,6 @@ async def upgrade_latest(conn: Connection) -> None:
 
             name                    TEXT NOT NULL DEFAULT '',
             topic                   TEXT NOT NULL DEFAULT '',
-            avatar_hash             TEXT NOT NULL DEFAULT '',
             avatar_url              TEXT NOT NULL DEFAULT '',
 
             name_set                BOOLEAN NOT NULL DEFAULT false,

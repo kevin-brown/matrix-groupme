@@ -1,3 +1,3 @@
 from typing import NewType
 
-GroupMeID = NewType("GroupMeID", int)
+GroupMeID = NewType("GroupMeID", str)

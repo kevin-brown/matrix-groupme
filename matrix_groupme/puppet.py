@@ -24,7 +24,7 @@ class Puppet(DBPuppet, BasePuppet):
     displayname_template: SimpleTemplate[str]
 
     by_groupme_id: dict[GroupMeID, Puppet] = {}
-    by_custom_mxid: dict[UserID, Puppet] = {}
+    by_custom_matrix_id: dict[UserID, Puppet] = {}
 
     def _add_to_cache(self) -> None:
         self.by_groupme_id[self.id] = self
@@ -88,3 +88,18 @@ class Puppet(DBPuppet, BasePuppet):
     @classmethod
     def get_by_matrix_id(cls, matrix_id: UserID, create: bool = True) -> Awaitable[Puppet | None]:
         return cls.get_by_groupme_id(cls.get_id_from_matrix_id(matrix_id), create=create)
+
+    @classmethod
+    @async_getter_lock
+    async def get_by_custom_matrix_id(cls, matrix_id: UserID, /) -> Puppet | None:
+        try:
+            return cls.by_custom_matrix_id[matrix_id]
+        except KeyError:
+            pass
+
+        puppet = cast(Puppet, await super().get_by_custom_matrix_id(matrix_id))
+        if puppet:
+            puppet._add_to_cache()
+            return puppet
+
+        return None

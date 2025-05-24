@@ -7,7 +7,7 @@ from attr import dataclass
 from sqlite3 import Row
 from yarl import URL
 
-from typing import TYPE_CHECKING, ClassVar, Iterable, Awaitable
+from typing import TYPE_CHECKING, ClassVar
 
 from ..types import GroupMeID
 
@@ -20,41 +20,43 @@ class Puppet:
 
     id: GroupMeID
 
-    is_registered: bool
+    display_name: str
+    display_name_set: bool
 
-    displayname: str | None
-    displayname_source: GroupMeID | None
-    displayname_contact: bool
-    displayname_quality: int
-    disable_updates: bool
-    username: str | None
-    phone: str | None
-    photo_id: str | None
-    avatar_url: ContentURI | None
-    name_set: bool
-    avatar_set: bool
-    contact_info_set: bool
-    is_bot: bool | None
-    is_channel: bool
-    is_premium: bool
+    groupme_user_id: GroupMeID
+    groupme_avatar_url: str
 
-    custom_mxid: UserID | None
-    access_token: str | None
-    next_batch: SyncToken | None
-    base_url: URL | None
+    matrix_avatar_url: ContentURI
+    matrix_avatar_set: bool
+
+    custom_matrix_id: UserID
+    access_token: str
+
+    next_batch: SyncToken
+
+    columns: ClassVar[str] = (
+        "id",
+        "display_name", "display_name_set",
+        "groupme_avatar_url", "matrix_avatar_url", "matrix_avatar_set",
+        "custom_mxid","access_token", "next_batch",
+    ),
 
     @classmethod
     def _from_row(cls, row: Row | None) -> Puppet | None:
         if row is None:
             return None
-        data = {**row}
-        base_url = data.pop("base_url", None)
-        return cls(**data, base_url=URL(base_url) if base_url else None)
+
+        return cls(**row)
 
     @classmethod
     async def get_by_groupme_id(cls, groupme_id: GroupMeID) -> Puppet | None:
-        q = f"SELECT {cls.columns} FROM puppet WHERE id=$1"
+        q = f"SELECT {cls.columns} FROM puppet WHERE groupme_user_id=$1"
         return cls._from_row(await cls.db.fetchrow(q, groupme_id))
+
+    @classmethod
+    async def get_by_custom_matrix_id(cls, matrix_id: UserID) -> Puppet | None:
+        q = f"SELECT {cls.columns} FROM puppet WHERE custom_matrix_id=$1"
+        return cls._from_row(await cls.db.fetchrow(q, matrix_id))
 
     async def insert(self) -> None:
         q = """
