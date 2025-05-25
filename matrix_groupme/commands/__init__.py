@@ -11,4 +11,11 @@ if TYPE_CHECKING:
     description="Log in to GroupMe with a GroupMe access token.",
 )
 async def login(evt: CommandEvent):
-    print("login called")
+    if not evt.args:
+        await evt.reply("**Usage:** `$cmdprefix+sp login <access_token>`")
+        return
+
+    evt.sender.auth_token = evt.args[0]
+
+    await evt.sender.connect()
+    await evt.sender.update()

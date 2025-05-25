@@ -6,6 +6,7 @@ from mautrix.types import UserID
 from typing import AsyncIterable, Awaitable, cast, TYPE_CHECKING
 
 from .db import User as DBUser
+from .groupme import GroupMeClient
 from .portal import Portal
 from .puppet import Puppet
 from .types import GroupMeID
@@ -21,18 +22,17 @@ class User(DBUser, BaseUser):
     by_matrix_id: dict[UserID, User] = {}
     by_groupme_id: dict[GroupMeID, User] = {}
 
-    email: str = None
-
     relay_whitelisted: bool
     is_whitelisted: bool
     is_admin: bool
     permission_level: str
 
-    def __init__(self, matrix_id: UserID, groupme_id: GroupMeID = None, email: str = None) -> None:
-        super().__init__(matrix_id=matrix_id, groupme_id=groupme_id)
-        BaseUser.__init__(self)
+    client: GroupMeClient | None = None
+    connected: bool = False
 
-        self.email = email
+    def __init__(self, matrix_id: UserID, groupme_id: GroupMeID = None, auth_token: str = None) -> None:
+        super().__init__(matrix_id=matrix_id, groupme_id=groupme_id, auth_token=auth_token)
+        BaseUser.__init__(self)
 
         perms = self.config.get_permissions(matrix_id)
         self.relay_whitelisted, self.is_whitelisted, self.is_admin, self.permission_level = perms
@@ -53,6 +53,14 @@ class User(DBUser, BaseUser):
     @property
     def mxid(self) -> UserID:
         return self.matrix_id
+
+    async def connect(self) -> None:
+        if not self.client:
+            self.client = GroupMeClient(self.auth_token)
+
+        if not self.connected:
+            await self.client.connect()
+            self.connected = True
 
     @classmethod
     @async_getter_lock
@@ -96,4 +104,4 @@ class User(DBUser, BaseUser):
         )
 
     async def is_logged_in(self) -> bool:
-        return bool(self.email)
+        return self.client and self.connected

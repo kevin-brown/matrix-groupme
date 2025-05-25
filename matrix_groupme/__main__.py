@@ -1,6 +1,7 @@
 from mautrix.bridge import Bridge
 from mautrix.types import RoomID, UserID
 
+from . import commands
 from .config import Config
 from .db import init as init_db, upgrade_table
 from .matrix import MatrixHandler
