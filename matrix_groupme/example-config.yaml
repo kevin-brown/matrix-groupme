@@ -443,7 +443,7 @@ bridge:
         users: true
 
     # The prefix for commands. Only required in non-management rooms.
-    command_prefix: "!tg"
+    command_prefix: "!gm"
 
     # Messages sent upon joining a management room.
     # Markdown is supported. The defaults are listed below.

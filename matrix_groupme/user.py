@@ -29,13 +29,14 @@ class User(DBUser, BaseUser):
     permission_level: str
 
     def __init__(self, matrix_id: UserID, groupme_id: GroupMeID = None, email: str = None) -> None:
-        self.matrix_id = matrix_id
-        self.groupme_id = groupme_id
+        super().__init__(matrix_id=matrix_id, groupme_id=groupme_id)
+        BaseUser.__init__(self)
 
         self.email = email
 
         perms = self.config.get_permissions(matrix_id)
         self.relay_whitelisted, self.is_whitelisted, self.is_admin, self.permission_level = perms
+
 
     def _add_to_cache(self) -> None:
         self.by_matrix_id[self.matrix_id] = self
@@ -68,7 +69,7 @@ class User(DBUser, BaseUser):
         if not check_db:
             return None
 
-        user = cast(User, await super().get_by_matrix_id(matrix_id))
+        user = cast(cls, await super().get_by_matrix_id(matrix_id))
         if user is not None:
             user._add_to_cache()
             return user
