@@ -31,6 +31,7 @@ class Puppet:
 
     custom_matrix_id: UserID
     access_token: str
+    is_registered: bool
 
     next_batch: SyncToken
 
@@ -38,7 +39,7 @@ class Puppet:
         "id, "
         "display_name, display_name_set, "
         "groupme_avatar_url, matrix_avatar_url, matrix_avatar_set, "
-        "custom_matrix_id, access_token, next_batch"
+        "custom_matrix_id, access_token, is_registered, next_batch"
     )
 
     @classmethod
@@ -58,14 +59,38 @@ class Puppet:
         q = f"SELECT {cls.columns} FROM puppet WHERE custom_matrix_id=$1"
         return cls._from_row(await cls.db.fetchrow(q, matrix_id))
 
+    @property
+    def _values(self):
+        return (
+            self.id,
+            self.display_name,
+            self.display_name_set,
+            self.groupme_user_id,
+            self.groupme_avatar_url,
+            self.matrix_avatar_url,
+            self.matrix_avatar_set,
+            self.custom_matrix_id,
+            self.access_token,
+            self.is_registered,
+            self.next_batch,
+        )
+
     async def insert(self) -> None:
         q = """
         INSERT INTO puppet (
-            id, is_registered, displayname, displayname_source, displayname_contact,
-            displayname_quality, disable_updates, username, phone, photo_id, avatar_url, name_set,
-            avatar_set, contact_info_set, is_bot, is_channel, is_premium, custom_mxid,
-            access_token, next_batch, base_url
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
-                  $19, $20, $21)
+            id, display_name, display_name_set, groupme_user_id, groupme_avatar_url,
+            matrix_avatar_url, matrix_avatar_set, custom_matrix_id, access_token,
+            is_registered, next_batch
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        """
+        await self.db.execute(q, *self._values)
+
+    async def save(self) -> None:
+        q = """
+        UPDATE puppet
+        SET display_name=$2, display_name_set=$3, groupme_user_id=$4, groupme_avatar_url=$5,
+            matrix_avatar_url=$6, matrix_avatar_set=$7, custom_matrix_id=$8,
+            access_token=$9, is_registered=$10, next_batch=$11
+        WHERE id=$1
         """
         await self.db.execute(q, *self._values)

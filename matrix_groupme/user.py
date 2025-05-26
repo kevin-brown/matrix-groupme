@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from mautrix.bridge import BaseUser, async_getter_lock
 from mautrix.types import UserID
+from mautrix.util import background_task
 
 from typing import AsyncIterable, AsyncGenerator, Awaitable, cast, TYPE_CHECKING
 
@@ -61,6 +62,33 @@ class User(DBUser, BaseUser):
         if not self.connected:
             await self.client.connect()
             self.connected = True
+
+        background_task.create(self.post_connect())
+
+    async def post_connect(self) -> None:
+        await self.sync_user_info(self.client.me)
+
+        puppet = await Puppet.get_by_groupme_id(self.groupme_id)
+
+        if puppet.custom_matrix_id != self.matrix_id:
+            await puppet.switch_matrix_id(self.matrix_id)
+
+    async def sync_user_info(self, groupme_user: dict) -> None:
+        """
+        Sync user information from GroupMe.
+        """
+        if not groupme_user:
+            return
+
+        changed = False
+
+        if self.groupme_id != groupme_user.get("id"):
+            self.groupme_id = groupme_user.get("id")
+            changed = True
+
+        if changed:
+            await self.update()
+            self._add_to_cache()
 
     @classmethod
     @async_getter_lock

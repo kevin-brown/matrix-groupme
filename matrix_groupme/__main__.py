@@ -13,8 +13,8 @@ from .version import version, linkified_version
 class GroupMeBridge(Bridge):
     module = "matrix_groupme"
     name = "matrix-groupme"
-    beeper_service_name = "telegram"
-    beeper_network_name = "telegram"
+    beeper_service_name = "groupme"
+    beeper_network_name = "groupme"
     command = "python -m matrix-groupme"
     description = "A Matrix-GroupMe puppeting bridge."
     repo_url = "https://github.com/kevin-brown/matrix-groupme"
