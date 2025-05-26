@@ -3,7 +3,7 @@ from __future__ import annotations
 from mautrix.bridge import BaseUser, async_getter_lock
 from mautrix.types import UserID
 
-from typing import AsyncIterable, Awaitable, cast, TYPE_CHECKING
+from typing import AsyncIterable, AsyncGenerator, Awaitable, cast, TYPE_CHECKING
 
 from .db import User as DBUser
 from .groupme import GroupMeClient
@@ -48,7 +48,7 @@ class User(DBUser, BaseUser):
         cls.bridge = bridge
         cls.config = bridge.config
 
-        return []
+        return (user.connect() async for user in User.all_with_auth_tokens())
 
     @property
     def mxid(self) -> UserID:
@@ -90,6 +90,15 @@ class User(DBUser, BaseUser):
             return user
 
         return None
+
+    @classmethod
+    async def all_with_auth_tokens(cls) -> AsyncGenerator[User, None]:
+        async for user in super().all_with_auth_tokens():
+            try:
+                yield cls.by_matrix_id[user.matrix_id]
+            except KeyError:
+                user._add_to_cache()
+                yield user
 
     async def get_puppet(self) -> Puppet | None:
         if not self.groupme_id:

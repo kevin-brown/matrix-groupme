@@ -6,7 +6,7 @@ from mautrix.util.async_db import Connection, Database, Scheme
 from attr import dataclass
 
 from sqlite3 import Row
-from typing import TYPE_CHECKING, ClassVar, Iterable
+from typing import TYPE_CHECKING, ClassVar, AsyncGenerator
 
 from ..types import GroupMeID
 
@@ -31,8 +31,14 @@ class User:
 
     @classmethod
     async def get_by_matrix_id(cls, matrix_id: UserID) -> User | None:
-        q = f"SELECT matrix_id, groupme_id, auth_token FROM user WHERE matrix_id=$1"
+        q = "SELECT matrix_id, groupme_id, auth_token FROM user WHERE matrix_id=$1"
         return cls._from_row(await cls.db.fetchrow(q, matrix_id))
+
+    @classmethod
+    async def all_with_auth_tokens(cls) -> AsyncGenerator[User, None]:
+        q = "SELECT matrix_id, groupme_id, auth_token FROM user WHERE auth_token IS NOT NULL"
+        for row in await cls.db.fetch(q):
+            yield cls._from_row(row)
 
     async def insert(self) -> None:
         q = """
